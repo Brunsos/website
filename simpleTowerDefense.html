@@ -1,0 +1,324 @@
+
+<html>
+<canvas id="statCanvas" width="902" height="100"></canvas>
+<canvas id="mainCanvas" width="700" height="500"></canvas>
+<div id="menu">
+<button id="tower1" onclick="tSelect = tower1.towerN;">1 damage: $10</button>
+<button id="tower2" onclick="tSelect = tower2.towerN;">2 damage: $20</button>
+<button id="start" onclick= "rStart = true; spawn(); document.getElementById('start').disabled = true; die = false; kill = false;">Send</button>
+<canvas id="menuCanvas" width="200" height="500"></canvas>
+</div>
+
+
+<script>
+var canvas = document.getElementById("mainCanvas");
+var ctx = mainCanvas.getContext("2d");
+var canvas2 = document.getElementById("menuCanvas");
+var ctx2 = menuCanvas.getContext("2d");
+var canvas3 = document.getElementById("statCanvas");
+var ctx3 = statCanvas.getContext("2d");
+
+var money = 10;
+var die;
+var kill = false;
+var n = -1;
+var relativeX;
+var relativeY;
+var checkX;
+var checkY;
+var tSelect = false;
+var rStart = false;
+var xE = [];
+var yE = [];
+var xA = [];
+xA[0] = [0,0,0,0,0,1,1,1,1,1,1,0,0,0]; //xAvailibility
+xA[1] = [0,0,0,0,0,1,0,0,0,0,1,0,1,1];
+xA[2] = [0,0,0,0,0,1,0,0,1,1,1,0,1,0];
+xA[3] = [0,0,0,0,0,1,0,0,1,0,0,0,1,0];
+xA[4] = [0,0,0,0,0,1,0,0,1,0,0,0,1,0];
+xA[5] = [0,1,1,1,1,1,0,0,1,0,0,0,1,0];
+xA[6] = [0,1,0,0,0,0,0,0,1,0,0,0,1,0];
+xA[7] = [0,1,0,0,0,0,0,0,1,1,1,1,1,0];
+xA[8] = [0,1,1,1,1,1,0,0,0,0,0,0,0,0];
+xA[9] = [0,0,0,0,0,1,0,0,0,0,0,0,0,0];
+//0 is open tile, 1 is the track, 2 and 3 are towers
+
+function drawTowers(){
+	for (i=0;i<10;i++){
+		for(e=0;e<14;e++){
+			if(xA[i][e] == tower1.towerN)
+			{tower1.drawT();}
+			
+			if(xA[i][e] == tower2.towerN)
+			{tower2.drawT();}
+		}
+	}
+}
+
+function detect(){
+	if(rStart == true){
+	for (y=0;y<10;y++){
+		for(x=0;x<14;x++){
+			if(xA[y][x] == tower1.towerN){
+				if(xE[n] == ((x-1)*50)+25  && yE[n] == ((y+1)*50)+25){enemyH = enemyH - tower1.damage}
+				if(xE[n] == ((x-1)*50)+25  && yE[n] == ((y)*50)+25){enemyH = enemyH - tower1.damage}
+				if(xE[n] == ((x-1)*50)+25  && yE[n] == ((y-1)*50)+25){enemyH = enemyH - tower1.damage}
+				if(xE[n] == ((x)*50)+25  && yE[n] == ((y+1)*50)+25){enemyH = enemyH - tower1.damage}
+				if(xE[n] == ((x)*50)+25  && yE[n] == ((y-1)*50)+25){enemyH = enemyH - tower1.damage}
+				if(xE[n] == ((x+1)*50)+25  && yE[n] == ((y+1)*50)+25){enemyH = enemyH - tower1.damage}
+				if(xE[n] == ((x+1)*50)+25  && yE[n] == ((y)*50)+25){enemyH = enemyH - tower1.damage}
+				if(xE[n] == ((x+1)*50)+25  && yE[n] == ((y-1)*50)+25){enemyH = enemyH - tower1.damage}
+
+			}
+				
+			if(xA[y][x] == tower2.towerN){
+				if(xE[n] == ((x-1)*50)+25  && yE[n] == ((y+1)*50)+25){enemyH = enemyH - tower2.damage}
+				if(xE[n] == ((x-1)*50)+25  && yE[n] == ((y)*50)+25){enemyH = enemyH - tower2.damage}
+				if(xE[n] == ((x-1)*50)+25  && yE[n] == ((y-1)*50)+25){enemyH = enemyH - tower2.damage}
+				if(xE[n] == ((x)*50)+25  && yE[n] == ((y+1)*50)+25){enemyH = enemyH - tower2.damage}
+				if(xE[n] == ((x)*50)+25  && yE[n] == ((y-1)*50)+25){enemyH = enemyH - tower2.damage}
+				if(xE[n] == ((x+1)*50)+25  && yE[n] == ((y+1)*50)+25){enemyH = enemyH - tower2.damage}
+				if(xE[n] == ((x+1)*50)+25  && yE[n] == ((y)*50)+25){enemyH = enemyH - tower2.damage}
+				if(xE[n] == ((x+1)*50)+25  && yE[n] == ((y-1)*50)+25){enemyH = enemyH - tower2.damage}//
+			}
+		}
+	}
+}
+	
+	
+	}
+
+
+function drawTrack(x,y,w,h){
+		ctx.fillStyle = "#d4e855";
+		ctx.fillRect(x,y,w,h);
+		}
+document.addEventListener("click", placeTower);
+document.addEventListener("mousemove", mouseMoveHandler, false);
+
+
+
+function mouseMoveHandler(e) {
+    relativeX = e.clientX - canvas.offsetLeft;
+	relativeY = e.clientY - canvas.offsetTop;
+	if(relativeX < 0){relativeX = 0;}
+	if(relativeY < 0){relativeY = 0;}
+	if(relativeX > 700){relativeX = 700;}
+	if(relativeY > 500){relativeY = 500;} 
+	}
+
+function draw(){
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx3.clearRect(0, 0, canvas3.width, canvas3.height);
+	drawTrack(600,50,100,50);
+	drawTrack(600,100,50,300);
+	drawTrack(400,350,200,50);
+	drawTrack(400,100,50,250);
+	drawTrack(400,100,150,50);
+	drawTrack(500,0,50,100);
+	drawTrack(250,0,250,50);
+	drawTrack(250,50,50,200);
+	drawTrack(50,250,250,50);
+	drawTrack(50,300,50,150);
+	drawTrack(100,400,200,50);
+	drawTrack(250,450,50,50);
+	drawTowers();
+	detect();
+	
+	if(tSelect != 0){
+	checkY = Math.ceil(relativeY/50);
+	checkX = Math.ceil(relativeX/50);
+		
+		if(xA[checkY-1][checkX-1] != 0){
+		ctx.fillStyle = "#e8110d"}
+		else{
+		ctx.fillStyle = "#32e006";}
+		ctx.fillRect(relativeX -25,relativeY-25,50,50);
+	}
+	if(die == false && kill == false){
+	enemy1.drawE();}
+	if(xE[n] > 13*50-25 && yE[n] > 1*50) {xE[n] = xE[n] - 1;}
+	if(xE[n] == 13*50-25 && yE[n] > 1*50){yE[n] = yE[n] + 1;}
+	if(xE[n] > 8*50 && yE[n] == 8*50-25){xE[n] = xE[n] - 1;}
+	if(xE[n] == 8*50+25 && yE[n] > 2*50){yE[n] = yE[n] - 1;}
+	if(xE[n] > 8*50 && xE[n] < 11*50 && yE[n] == 3*50-25){xE[n] = xE[n] + 1;}
+	if(xE[n] == 11*50-25 && yE[n] <= 3*50-25){yE[n] = yE[n] - 1;}
+	if(xE[n] >= 5*50+25 && yE[n] <= 25){xE[n] = xE[n] - 1;}
+	if(xE[n] == 5*50+25 && yE[n] < 5*50+25){yE[n] = yE[n] + 1;}
+	if(xE[n] <= 5*50+25 && xE[n] > 1*50+25 && yE[n] == 5*50+25 ){xE[n] = xE[n] - 1;}
+	if(xE[n] == 1*50+25 && yE[n] < 8*50+25){yE[n] = yE[n] + 1;}
+	if(xE[n] < 5*50+25 && yE[n] == 8*50+25){xE[n] = xE[n] + 1;}
+	if(xE[n] == 5*50+25 && yE[n] <= 10*50){yE[n] = yE[n] + 1;}
+	
+	if(yE[n] == 10*50){
+	die = true;
+	money = 0;
+	document.getElementById('start').disabled == true
+	}
+	
+	if(die == true){
+	ctx.font = "110px Impact";
+	ctx.textAlign = "center";
+	ctx.fillStyle = "#ff0000";
+	ctx.fillText("You Lose!",canvas.width/2,canvas.height/2);
+	}
+	
+	if(enemyH <= 0){yE[n] = 0; kill = true; money = money + 15}
+	
+	if(kill == true && document.getElementById('start').disabled == true){
+	enemyH = (n+2)*3;
+	document.getElementById('start').disabled = false;}
+	
+	if(money < tower1.cost){document.getElementById("tower1").disabled = true;}
+	else{document.getElementById("tower1").disabled = false;}
+	
+	if(money < tower2.cost){document.getElementById("tower2").disabled = true;}
+	else{document.getElementById("tower2").disabled = false;}
+	
+ctx3.font = "60px Impact";
+ctx3.textAlign = "left";
+ctx3.fillStyle = "#FFD700";
+ctx3.fillText("Simple Tower Defense ",5,80);
+ctx3.font = "40px Impact";
+ctx3.fillText("Money: $" + money,700,80);
+}
+
+
+setInterval(draw, 10);
+
+
+function spawn(){
+n++;
+xE[n] = 14*50;
+yE[n] = 1*50 + 25;
+}
+
+
+function Enemy(size,color,health,enemyN){
+	this.size = size;
+	this.color = color;
+	this.health = health;
+	this.enemyN = enemyN;
+	
+	this.drawE = function(){
+	ctx.beginPath();
+    ctx.arc(xE[n], yE[n], this.size, 0, Math.PI*2);
+    ctx.fillStyle = this.color;
+	ctx.closePath();
+    ctx.fill();
+	ctx.font = "20px Impact";
+	ctx.textAlign = "center";
+	ctx.fillStyle = "#000000";
+	ctx.fillText(enemyH,xE[n],yE[n] + 8);
+	}
+}
+var enemyH = 3;
+var enemy1 = new Enemy(10,"#d80d0d",enemyH,4)
+
+
+	
+function Tower(size,color,damage,cost,towerN){
+	this.size = size;
+	this.color = color;
+	this.damage = damage; 
+	this.cost = cost;
+	this.towerN = towerN;
+	
+	this.place = function() {
+	xA[checkY-1][checkX-1] = this.towerN;
+	money = money - this.cost;
+	}
+	
+	this.drawT = function(){
+	ctx.fillStyle = this.color;
+	ctx.fillRect(e*50,i*50,this.size,this.size);}
+}
+var tower1 = new Tower(50,"#557cba",1,10,2);
+var tower2 = new Tower(50,"#f4429e",2,20,3);
+
+function placeTower(){
+	if (relativeX > 0.1 && relativeX < 699.9 && relativeY > 0.1 && relativeY < 499.9 && tSelect != 0 && xA[checkY-1][checkX-1] == 0){
+
+	if (tSelect == tower1.towerN){
+	tower1.place();
+	tSelect = 0;}
+	
+	if (tSelect == tower2.towerN){
+	tower2.place();
+	tSelect = 0;}}
+}
+ctx2.font = "60px Impact";
+ctx2.textAlign = "left";
+ctx2.fillStyle = "#686657";
+ctx2.fillText("Towers",5,50);
+
+ctx2.font = "20px Impact";
+ctx2.textAlign = "left";
+ctx2.fillStyle = "#686657";
+ctx2.fillText("Place towers to defend",5,275);
+ctx2.font = "18px Impact";
+ctx2.fillText("Towers have 1 block range",5,300);
+ctx2.fillText("Towers dont shoot corners",5,325);
+ctx2.font = "20px Impact";
+ctx2.fillText("You get $15 each round",5,350);
+ctx2.font = "15px Impact";
+ctx2.fillText("Enemy gets 3 health each round",5,372.5);
+ctx2.font = "20px Impact";
+ctx2.fillText("How long can you last?",5,395);
+
+
+
+
+</script>
+<style>
+
+#menu{
+display:inline-block;}
+
+#tower1{
+position: absolute;
+margin-left:-3px;
+margin-top: 50px;
+width:200px;
+height:100px;}
+
+#tower2{
+position: absolute;
+margin-left:-3px;
+margin-top: 150px;
+width:200px;
+height:100px;}
+
+#test{
+position: absolute;
+margin-left:-3px;
+margin-top: 250px;
+width:200px;
+height:100px;}
+
+#start{
+position: absolute;
+margin-left:-3px;
+margin-top: 400px;
+width:200px;
+height:100px;}
+
+#mainCanvas{
+border:1px solid black;
+background-color: #209118;
+margin: 0 auto;
+display: inline-block;}
+
+#menuCanvas{
+border:1px solid black;
+background-color: #b1b6bf;
+margin-left: -4px;
+display: inline-block;}
+
+#statCanvas{
+border:1px solid black;
+background-color: #276dea;
+margin-bottom: -4px;
+display: block;}
+</style>
+</html>

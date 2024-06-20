@@ -1,0 +1,1046 @@
+<html>
+<body>
+<canvas id="canvasTop" width="675" height="50"></canvas>
+<canvas id="myCanvas" width="675" height="400"></canvas>
+</body>
+
+<script>
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var canvasTop = document.getElementById("canvasTop");
+var ctx2 = canvasTop.getContext("2d");
+var print = false;
+var gameActive = false;
+//highscore stuff
+var name;
+var highscores = [1,2,5,10,50];
+var hNames = ["BOB","JOE","MOE","DAN","BAD"];
+var deaths = 0
+var userPosition;
+//player 
+var playerX = 20;
+var playerY = 20;
+var playerXP = 0;
+var playerYP = 0;
+var playerHeight = 20;
+var playerWidth = 20;
+//controls
+var rightPressed = false;
+var leftPressed = false;
+var upPressed = false;
+var downPressed = false;
+//enemy1
+var enemy1Radius = 10;
+		/* not needed but im gonna keep it since i use these
+		var enemy1X = 0;//enemy location
+		var enemy1Y = 0;
+		var enemy1XP = 0;//to print enemy
+		var enemy1YP = 0;
+		*/
+var enemy1XM = 237.5;//to move
+var enemy1YM = 100;
+var enemy1XMS = 0;//move speed
+var enemy1YMS = 5;
+//enemy2
+var enemy2Radius = 10;
+var enemy2XM = 287.5;
+var enemy2YM = 300;
+var enemy2XMS = 0;
+var enemy2YMS = -5;
+//enemy3
+var enemy3Radius = 10;
+var enemy3XM = 337.5;
+var enemy3YM = 100;
+var enemy3XMS = 0;
+var enemy3YMS = 5;
+//enemy4
+var enemy4Radius = 10;
+var enemy4XM = 387.5;
+var enemy4YM = 300;
+var enemy4XMS = 0;
+var enemy4YMS = -5;
+//enemy5
+var enemy5Radius = 10;
+var enemy5XM = 437.5;
+var enemy5YM = 100;
+var enemy5XMS = 0;
+var enemy5YMS = 5;
+//shooter1
+var shooter1XP = 540;
+var shooter1YP = 162.5;
+//shooter2
+var shooter2XP = 135;
+var shooter2YP = 263.5;
+//bullet1
+var bullet1XM = 520;
+var bullet1YM = 162.5;
+var bulletRadius = 7;
+var bullet1XMS = -1.45;
+//bullet2
+var bullet2XM = 150 + bulletRadius;
+var bullet2YM = 262.5;
+var bullet2XMS = 3;
+var bulletBlocked = false;
+var bulletBlockedA = 1;
+//box
+var boxX = 100; //401
+var boxY = 275; //301
+var boxHeight = 25;
+var boxWidth = 25;
+var boxLeft = false;
+var boxRight = false;
+var boxDown = false;
+var boxUp = false;
+var boxUpC = false; // box collision with wall
+var boxDownC = false;
+var boxLeftC = false;
+var boxRightC = false;
+var boxUpPC = false; // box collision with player when touching wall
+var boxDownPC = false;
+var boxLeftPC = false;
+var boxRightPC = false;
+//walls
+var wallThiccness = 2;
+var wallWidth = 0;
+var wallHeight = 0;
+var wallX = 0;
+var wallY = 0;
+var wallRight = false;
+var wallLeft = false;
+var wallUp = false;
+var wallDown = false;
+//coins
+var coin1Radius = 10;
+var coin1XM = 537.5;
+var coin1YM = 200;
+var coin1Get = false;
+//finish
+var finishColor = "#00fc00";
+var level1Complete = false;
+var level2Complete = false;
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = true;
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = true;
+    };
+    if(e.key == "Up" || e.key == "ArrowUp") {
+        upPressed = true;
+    }
+    else if(e.key == "Down" || e.key == "ArrowDown") {
+        downPressed = true;
+}
+}
+
+function keyUpHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = false;
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = false;
+    };
+    
+    if(e.key == "Up" || e.key == "ArrowUp") {
+        upPressed = false;
+    }
+    else if(e.key == "Down" || e.key == "ArrowDown") {
+        downPressed = false;
+    };
+};
+
+function drawWall(wallX,wallY,wallWidth,wallHeight){
+	ctx.beginPath();
+	ctx.rect(wallX, wallY, wallWidth, wallHeight);
+	ctx.fillStyle = "#000000";
+	ctx.fill();
+	ctx.closePath();
+}
+
+function drawBackground(){
+var xBackground = 0;
+var yBackground = -25;
+var backgroundWidth = 25;
+var backgroundHeight = 25;
+var everySecond = 1;
+
+	for(c=0;c<16;c++){
+	if (everySecond == 1)
+	{everySecond = 0}
+	else
+	{everySecond = 1};
+	yBackground += 25;
+		for(i=0;i<27;i++){
+			ctx.beginPath();
+			ctx.rect(xBackground, yBackground, backgroundWidth, backgroundHeight);
+			ctx.fillStyle = "#e3e5fc";
+			ctx.fill();
+			xBackground += 50;
+			}
+		if (everySecond == 0)
+		{
+		xBackground = 25;
+		}
+		else{
+		xBackground = 0;
+		}
+		
+	}
+}
+
+function drawPlayer() {
+if(print == false)
+{
+playerX = playerXP;
+playerY = playerYP;
+print=true;
+}
+	ctx.beginPath();
+	ctx.rect(playerX, playerY, playerWidth, playerHeight);
+	ctx.fillStyle = "#000000";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.rect(playerX+2, playerY+2, playerWidth-4, playerHeight-4);
+	ctx.fillStyle = "#f20018";
+	ctx.fill();
+	ctx.closePath();
+}
+
+function drawCoin1(coin1XP,coin1YP) {
+coin1X = coin1XP;
+coin1Y = coin1YP;
+    ctx.beginPath();
+    ctx.arc(coin1XP, coin1YP, coin1Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(coin1XP, coin1YP, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#fff01e";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawEnemy1(enemy1XP,enemy1YP) {
+enemy1X = enemy1XP;
+enemy1Y = enemy1YP;
+    ctx.beginPath();
+    ctx.arc(enemy1XP, enemy1YP, enemy1Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(enemy1XP, enemy1YP, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawEnemy2(enemy2XP,enemy2YP) {
+enemy2X = enemy2XP;
+enemy2Y = enemy2YP;
+    ctx.beginPath();
+    ctx.arc(enemy2X, enemy2Y, enemy2Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(enemy2X, enemy2Y, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawEnemy3(enemy3XP,enemy3YP) {
+enemy3X = enemy3XP;
+enemy3Y = enemy3YP;
+    ctx.beginPath();
+    ctx.arc(enemy3X, enemy3Y, enemy3Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(enemy3X, enemy3Y, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawEnemy4(enemy4XP,enemy4YP) {
+enemy4X = enemy4XP;
+enemy4Y = enemy4YP;
+    ctx.beginPath();
+    ctx.arc(enemy4X, enemy4Y, enemy4Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(enemy4X, enemy4Y, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawEnemy5(enemy5XP,enemy5YP) {
+enemy5X = enemy5XP;
+enemy5Y = enemy5YP;
+    ctx.beginPath();
+    ctx.arc(enemy5X, enemy5Y, enemy5Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(enemy5X, enemy5Y, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawShooter1(shooter1XP,shooter1YP) {
+	ctx.beginPath(); // rectangle part of shooter
+	ctx.rect(shooter1XP-15, shooter1YP -6.5,13, 13);
+	ctx.fillStyle = "#000000";
+	ctx.fill();
+	ctx.closePath();
+    ctx.beginPath();
+	ctx.beginPath(); // rectangle shooter
+	ctx.rect(shooter1XP-13, shooter1YP -4.75,10, 10);
+	ctx.fillStyle = "#828da0";
+	ctx.fill();
+	ctx.closePath();
+    ctx.beginPath(); //ball part of shooter
+    ctx.arc(shooter1XP, shooter1YP, enemy1Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(shooter1XP, shooter1YP, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawShooter2(shooter2XP,shooter2YP) {
+	ctx.beginPath();
+	ctx.rect(shooter2XP+2, shooter2YP-6.5,13, 13);
+	ctx.fillStyle = "#000000";
+	ctx.fill();
+	ctx.closePath();
+    ctx.beginPath();
+	ctx.beginPath();
+	ctx.rect(shooter2XP+3.5, shooter2YP-5,10, 10);
+	ctx.fillStyle = "#828da0";
+	ctx.fill();
+	ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(shooter2XP, shooter2YP, enemy1Radius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(shooter2XP, shooter2YP, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+function shoot1(bullet1XP, bullet1YP){
+bullet1X = bullet1XP;
+bullet1Y = bullet1YP;
+    ctx.beginPath();
+    ctx.arc(bullet1X, bullet1Y, bulletRadius, 0, Math.PI*2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(bullet1X, bullet1Y, bulletRadius-2, 0, Math.PI*2);
+    ctx.fillStyle = "#0c1caf";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function shoot2(bullet2XP, bullet2YP){
+bullet2X = bullet2XP;
+bullet2Y = bullet2YP;
+    ctx.beginPath();
+    ctx.arc(bullet2X, bullet2Y, bulletRadius, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(0, 0, 0,${bulletBlockedA})`;
+    ctx.fill();
+    ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(bullet2X, bullet2Y, bulletRadius-2, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(12, 28, 175,${bulletBlockedA})`;
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawBox() {
+	ctx.beginPath();
+	ctx.rect(boxX, boxY, boxWidth, boxHeight);
+	ctx.fillStyle = "#000000";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.rect(boxX+2, boxY+2, boxWidth-4, boxHeight-4);
+	ctx.fillStyle = "#848b96";
+	ctx.fill();
+	ctx.closePath();
+}
+
+function drawFinish(finishY,finishX,finishH,finishW){
+	ctx.beginPath();
+	ctx.rect(finishY,finishX,finishH,finishW); //y 152 x 77 h 100 w 50
+	ctx.fillStyle = finishColor;
+	ctx.fill();
+	ctx.closePath();
+	}
+
+
+function die1(){
+	coin1Get = false;
+	finishColor = "#ff0000"
+	print = false;
+	drawPlayer();
+	level1();
+	deaths++}
+	
+function die2(){
+	bullet1XM = 520;
+    bullet2XM = 150 + bulletRadius;
+	print = false;
+	drawPlayer();
+	level2();
+	boxX = 401;
+	boxY = 301;
+	deaths++}
+
+function level1() {
+
+	playerXP = 152.5;
+	playerYP = 190;
+	drawWall(75,150,wallThiccness,100)
+	drawWall(75,250,125,wallThiccness)
+	drawWall(75,150,125,wallThiccness)
+	drawWall(200,75,wallThiccness,77)
+	drawWall(200,250,wallThiccness,77)
+	drawWall(200,325,275,wallThiccness)
+	drawWall(200,75,275,wallThiccness)
+	drawWall(475,75,wallThiccness,77)
+	drawWall(475,250,wallThiccness,77)
+	drawWall(475,250,125,wallThiccness)
+	drawWall(475,150,125,wallThiccness)
+	drawWall(600,150,wallThiccness,102)
+    drawEnemy1(enemy1XM,enemy1YM);
+	drawEnemy2(enemy2XM,enemy2YM);
+	drawEnemy3(enemy3XM,enemy3YM);
+	drawEnemy4(enemy4XM,enemy4YM);
+	drawEnemy5(enemy5XM,enemy5YM);
+	if(coin1Get == false){
+	drawCoin1(coin1XM,coin1YM);
+	}
+	drawFinish(77, 152, 50, 98);
+	enemy1YM += enemy1YMS;
+	enemy2YM += enemy2YMS;
+	enemy3YM += enemy3YMS;
+	enemy4YM += enemy4YMS;
+	enemy5YM += enemy5YMS;
+	if (enemy1YM + enemy1Radius >= 325)
+	{
+	enemy1YMS = -enemy1YMS;
+	}
+	if (enemy1YM <= 75 + enemy1Radius)
+	{
+	enemy1YMS = -enemy1YMS;
+	}
+	
+		if (enemy2YM + enemy1Radius >= 325)
+	{
+	enemy2YMS = -enemy2YMS;
+	}
+	if (enemy2YM <= 75 + enemy1Radius)
+	{
+	enemy2YMS = -enemy2YMS;
+	}
+	
+		if (enemy3YM + enemy3Radius >= 325)
+	{
+	enemy3YMS = -enemy3YMS;
+	}
+	if (enemy3YM <= 75 + enemy3Radius)
+	{
+	enemy3YMS = -enemy3YMS;
+	}
+		if (enemy4YM + enemy4Radius >= 325)
+	{
+	enemy4YMS = -enemy4YMS;
+	}
+	if (enemy4YM <= 75 + enemy4Radius)
+	{
+	enemy4YMS = -enemy4YMS;
+	}
+	
+		if (enemy5YM + enemy5Radius >= 325)
+	{
+	enemy5YMS = -enemy5YMS;
+	}
+	if (enemy5YM <= 75 + enemy5Radius)
+	{
+	enemy5YMS = -enemy5YMS;
+	}
+
+	if(playerX < 125 && playerY < 250 && playerY > 150 && coin1Get == true ){	//checks if level finished TEST HERE IE;ROGUHQEGLIUQH
+	print = false
+	level1Complete = true;}
+	
+	if(coin1X + coin1Radius > playerX && //checks coin1 collision
+    coin1X - coin1Radius < (playerX + playerWidth) &&
+    coin1Y + coin1Radius > playerY &&
+    coin1Y - coin1Radius < (playerY + playerHeight))  {
+	coin1Get = true;
+	finishColor = "#00fc00";
+    }
+	
+	    if(enemy1X + enemy1Radius > playerX && //checks enemy1 collision
+    enemy1X - enemy1Radius < (playerX + playerWidth) &&
+    enemy1Y + enemy1Radius > playerY &&
+    enemy1Y - enemy1Radius < (playerY + playerHeight))  {
+	die1();
+    }
+	
+		if(enemy2X + enemy2Radius > playerX && //check enemy2 collision
+    enemy2X - enemy2Radius < (playerX + playerWidth) &&
+    enemy2Y + enemy2Radius > playerY &&
+    enemy2Y - enemy2Radius < (playerY + playerHeight))  {
+	die1();
+    }
+	
+		if(enemy3X + enemy3Radius > playerX && //check enemy3 collision
+    enemy3X - enemy3Radius < (playerX + playerWidth) &&
+    enemy3Y + enemy3Radius > playerY &&
+    enemy3Y - enemy3Radius < (playerY + playerHeight))  {
+	die1();
+    }
+		if(enemy4X + enemy4Radius > playerX && //check enemy4 collision
+    enemy4X - enemy4Radius < (playerX + playerWidth) &&
+    enemy4Y + enemy4Radius > playerY &&
+    enemy4Y - enemy4Radius < (playerY + playerHeight))  {
+	die1();
+    }
+		if(enemy5X + enemy5Radius > playerX && //check enemy5 collision
+    enemy5X - enemy5Radius < (playerX + playerWidth) &&
+    enemy5Y + enemy5Radius > playerY &&
+    enemy5Y - enemy5Radius < (playerY + playerHeight))  {
+	die1();
+    }
+	//wall left collision
+	if(playerX < 75 + wallThiccness && playerY < 250 && playerY > 150){
+	wallLeft = true;}
+	else if(playerX < 200 + wallThiccness && playerY < 150 && playerY > 75){
+	wallLeft = true;}
+	else if(playerX < 200 + wallThiccness && playerY < 325 && playerY > 251 - playerHeight) { //needs the 1 so can go left and down at same time
+	wallLeft = true;}
+	else{
+	wallLeft = false;};
+	//wall right collision
+	if(playerX > 475 - playerWidth && playerY < 150 && playerY > 75){
+	wallRight = true;}
+	else if(playerX > 475 - playerWidth && playerY < 475 && playerY > 250 - playerHeight){
+	wallRight = true;}
+	else if(playerX > 600  - playerWidth && playerY < 250 && playerY > 150){
+	wallRight = true;}
+	else{
+	wallRight = false;};
+	//wall up collision
+	if(playerY < 150 + wallThiccness && playerX > 75 && playerX < 200){
+	wallUp = true;}
+	else if(playerY < 75 + wallThiccness && playerX > 200 && playerX < 475){
+	wallUp = true;}
+	else if(playerX > 475 -playerWidth + wallThiccness && playerY < 150 + wallThiccness && playerY > 75){
+	wallUp = true;}
+	else{
+	wallUp = false;};
+	//wall down collision
+	if(playerY > 250 -playerHeight && playerX > 75 && playerX < 200){
+	wallDown = true;}
+	else if(playerY > 325-playerHeight && playerX > 200 && playerX < 475){
+	wallDown = true;}
+	else if(playerX > 475-playerWidth +wallThiccness && playerY < 325 && playerY > 249 - playerHeight) { //needs the 1 so can go left and down at same time
+	wallDown = true;}
+	else{
+	wallDown = false;};
+	}
+	
+	function level2() {
+    drawWall(125,100,wallThiccness,75)
+    drawWall(175,100,wallThiccness,50)
+    drawWall(125,100,50,wallThiccness)
+    drawWall(175,150,100,wallThiccness)
+    drawWall(275,125,25,wallThiccness)
+    drawWall(275,125,wallThiccness,27)
+    drawWall(300,125,wallThiccness,27)
+    drawWall(125,175,275,wallThiccness)
+    drawWall(400,175,wallThiccness,27)
+    drawWall(425,175,wallThiccness,27)
+    drawWall(400,200,25,wallThiccness)
+    drawWall(300,150,250,wallThiccness)
+    drawWall(550,150,wallThiccness,27)
+    drawWall(425,175,75,wallThiccness)
+    drawWall(525,175,25,wallThiccness)
+    drawWall(500,175,wallThiccness,77)
+    drawWall(525,175,wallThiccness,177)
+    drawWall(425,350,100,wallThiccness)
+    drawWall(425,325,wallThiccness,25)
+    drawWall(425,275,wallThiccness,25)
+    drawWall(400,300,wallThiccness,25)
+    drawWall(400,300,27,wallThiccness)
+    drawWall(400,325,27,wallThiccness)
+    drawWall(125,275,50,wallThiccness)
+    drawWall(200,275,225,wallThiccness)
+    drawWall(125,250,375,wallThiccness)
+    drawWall(175,325,25,wallThiccness)
+    drawWall(125,250,wallThiccness,25)
+    drawWall(175,275,wallThiccness,50)
+    drawWall(200,275,wallThiccness,52)
+	drawBox();
+	shoot1();
+	shoot2();
+	drawFinish(177,300,23,25)
+	playerXP = 140; // 140 t500
+	playerYP = 115; // 115 t300
+	drawShooter1(shooter1XP,shooter1YP);
+	drawShooter2(shooter2XP,shooter2YP);
+	shoot1(bullet1XM,bullet1YM);
+	shoot2(bullet2XM,bullet2YM);
+	bullet1XM += bullet1XMS;
+	bullet2XM += bullet2XMS;
+	
+		if (bullet1XM <= 125 + bulletRadius)
+	{
+	bullet1XM = 520;
+	}
+	
+		if (bullet2XM >= 525 - bulletRadius)
+	{
+	bullet2XM = 150 + bulletRadius;
+	bulletBlockedA = 1;
+	}
+	
+    //wall left collision
+	if(playerX < 125 + wallThiccness && playerY < 175 && playerY > 100 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 275 + wallThiccness && playerX > 250 + wallThiccness && playerY < 150 && playerY > 125 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 400 + wallThiccness && playerY < 200 && playerY > 175 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 500 + wallThiccness && playerX > 475 + wallThiccness && playerY < 250 && playerY > 175 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 400 + wallThiccness && playerX > 375 + wallThiccness && playerY < 325 && playerY > 300 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 425 + wallThiccness && playerX > 400 + wallThiccness && playerY < 300 && playerY > 276 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 425 + wallThiccness && playerX > 400 + wallThiccness && playerY < 350 && playerY > 325 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 150 + wallThiccness && playerY < 275 && playerY > 250 - playerHeight){
+	wallLeft = true;}
+    else if(playerX < 175 + wallThiccness && playerY < 325 && playerY > 275 - playerHeight){
+	wallLeft = true;}
+	else{
+	wallLeft = false;};
+	
+	
+	if(boxX < 150 + wallThiccness && boxY < 275 && boxY > 250 - boxHeight){
+		boxLeftC = true;
+	if(boxLeftPC == true){
+	wallLeft = true;}	// maybe this part makes it so that the thing doesnt shoot anymore
+	}
+	else if(boxX < 400 + wallThiccness && boxX > 375 + wallThiccness && boxY < 325 && boxY > 300 - boxHeight){
+		boxLeftC = true;
+	if(boxLeftPC == true){
+	wallLeft = true;}
+	}
+	else if(boxX < 425 + wallThiccness && boxX > 400 + wallThiccness && boxY < 300 && boxY > 276 - boxHeight){
+		boxLeftC = true;
+	if(boxLeftPC == true){
+	wallLeft = true;}
+	}
+	else if(boxX < 425 + wallThiccness && boxX > 400 + wallThiccness && boxY < 350 && boxY > 325 - boxHeight){
+		boxLeftC = true;
+	if(boxLeftPC == true){
+	wallLeft = true;}
+	}
+	else if(boxX < 500 + wallThiccness && boxX > 475 + wallThiccness && boxY < 250 && boxY > 175 - boxHeight){
+		boxLeftC = true;
+	if(boxLeftPC == true){
+	wallLeft = true;}
+	}
+	else{
+	boxLeftC = false};
+	
+	//wall right collision
+	if(playerX > 175 - playerWidth && playerX < 200 - playerWidth && playerY < 150 && playerY > 100){
+	wallRight = true;}
+    else if(playerX > 300 - playerWidth && playerY < 150 && playerY > 125){
+	wallRight = true;}
+    else if(playerX > 425 - playerWidth && playerX < 450 - playerWidth && playerY < 200 && playerY > 175 - playerHeight){
+	wallRight = true;}
+    else if(playerX > 525 - playerWidth && playerY < 350 && playerY > 150 - playerHeight){
+	wallRight = true;}
+    else if(playerX > 199 - playerWidth && playerX < 225 - playerWidth && playerY < 325 && playerY > 276 - playerHeight){
+	wallRight = true;}
+	else{
+	wallRight = false;};
+	
+	if(boxX > 525 - boxWidth && boxY < 350 && boxY > 150 - boxHeight){
+	boxRightC = true;
+	if(boxRightPC == true){
+	wallRight = true;}
+	}
+	else{
+	boxRightC = false};
+	
+	
+	//wall up collision
+    if(playerY < 100 + wallThiccness && playerX > 125 && playerX < 175){
+	wallUp = true;}
+    else if(playerY < 150 + wallThiccness && playerX > 175+wallThiccness-playerWidth && playerX < 275){
+	wallUp = true;}
+    else if(playerY < 125 + wallThiccness && playerX > 275+wallThiccness-playerWidth && playerX < 300){
+	wallUp = true;}
+    else if(playerY < 150 + wallThiccness && playerX > 300+wallThiccness-playerWidth && playerX < 525){
+	wallUp = true;}
+    else if(playerY < 250 + wallThiccness && playerY > 225 + wallThiccness && playerX > 175+wallThiccness-playerWidth && playerX < 500){
+	wallUp = true;}
+    else if(playerY < 300 + wallThiccness && playerY > 275 && playerX > 400+wallThiccness-playerWidth && playerX < 425){
+	wallUp = true;}
+    else{
+	wallUp = false;};
+
+	
+	if(boxY < 250 + wallThiccness && boxY > 225 + wallThiccness && boxX > 175+wallThiccness-boxWidth && boxX < 500){
+	boxUpC = true;
+	if(boxUpPC == true){
+	wallUp = true;}
+	}
+	else if(boxY < 150 + wallThiccness && boxX > 300+wallThiccness-boxWidth && boxX < 525){
+	boxUpC = true;
+	if(boxUpPC == true){
+	wallUp = true;}
+	}
+	else{
+	boxUpC = false};
+	
+    //wall down collision
+	if(playerY > 174.9-playerHeight && playerY < 200 && playerX > 125 && playerX < 400){ // idk why but it doesnt like 175
+	wallDown = true;}
+   	else if(playerY > 200-playerHeight && playerY < 225 && playerX > 400 && playerX < 425){
+	wallDown = true;}
+    else if(playerY > 174.9-playerHeight && playerY < 200 && playerX > 425+wallThiccness - playerWidth && playerX < 500){
+	wallDown = true;}
+    else if(playerY > 350-playerHeight && playerX > 425 && playerX < 525){
+	wallDown = true;}
+    else if(playerY > 275-playerHeight && playerX > 400+wallThiccness - playerWidth && playerX < 425){
+	wallDown = true;}
+    else if(playerY > 275-playerHeight && playerY < 300 && playerX > 200 - playerWidth && playerX < 425){
+	wallDown = true;}
+	else if(playerY > 325-playerHeight && playerX > 175 - playerWidth && playerX < 200){
+	wallDown = true;}
+    else{
+	wallDown = false;};
+	
+	if(boxY > 350-boxHeight && boxX > 425 && boxX < 525){
+		boxDownC = true;
+	if(boxDownPC == true){
+	wallDown = true;}
+	}
+	else if(boxY > 325-boxHeight && boxX > 175 - boxWidth && boxX < 200){
+		boxDownC = true;
+	if(boxDownPC == true){
+	wallDown = true;}
+	}
+	else if(boxY > 275-boxHeight && boxY < 300 && boxX > 200 - boxWidth && boxX < 425){
+		boxDownC = true;
+	if(boxDownPC == true){
+	wallDown = true;}
+	}
+	else{
+	boxDownC = false};
+    
+	//boxUp collision
+	if(playerY <= boxY + boxHeight && playerY + playerHeight >= boxY && playerX > boxX - playerWidth && playerX < boxX + playerWidth){
+		if(boxUpC == false){
+		boxUp = true;}
+		boxUpPC = true;
+		}
+		else{
+		boxUp = false;
+		boxUpPC = false;}
+	//boxDown collision
+	if(playerY <= boxY + boxHeight && playerY + playerHeight >= boxY && playerX > boxX - playerWidth && playerX < boxX + playerWidth + wallThiccness){
+		if(boxDownC == false){
+		boxDown = true;}
+		boxDownPC = true;
+		}
+		else{
+		boxDown = false;
+		boxDownPC = false;}
+	//boxLeft collision
+	if(playerX <= boxX + boxWidth && playerX + playerWidth >= boxX && playerY > boxY - playerHeight && playerY < boxY + playerHeight + wallThiccness){
+		if(boxLeftC == false){
+		boxLeft = true;}
+		boxLeftPC = true;
+		}
+		else{
+		boxLeft = false;
+		boxLeftPC = false;}
+	//boxRight collision
+	if(playerX <= boxX + boxWidth && playerX + playerWidth >= boxX && playerY > boxY - playerHeight && playerY < boxY + playerHeight){
+		if(boxRightC == false){
+		boxRight = true;}
+		boxRightPC = true;
+		}
+		else{
+		boxRight = false;
+		boxRightPC = false;}
+		
+
+			if(bullet2XM + bulletRadius > boxX && //check bullet2 collision with box
+    bullet2XM - bulletRadius < (boxX + boxWidth) &&
+    bullet2YM + bulletRadius > boxY &&
+    bullet2YM - bulletRadius < (boxY + boxHeight))  {
+	bulletBlockedA = 0}
+		
+		if(bullet1XM + bulletRadius > playerX && //check bullet1 collision
+    bullet1XM - bulletRadius < (playerX + playerWidth) &&
+    bullet1YM + bulletRadius > playerY &&
+    bullet1YM - bulletRadius < (playerY + playerHeight))  {
+	die2();}
+		if(bulletBlockedA == 1){
+		if(bullet2XM + bulletRadius > playerX && //check bullet2 collision
+    bullet2XM - bulletRadius < (playerX + playerWidth) &&
+    bullet2YM + bulletRadius > playerY &&
+    bullet2YM - bulletRadius < (playerY + playerHeight))  {
+	die2();}
+	}
+	
+	if(playerY + playerHeight > 300 && playerX > 175 && playerX < 200){ // checks finish
+	level2Complete = true;
+	getName();}
+};
+
+function position(){ //finds which position the user is in
+
+	for(i=0;i<=highscores.length;i++){
+
+		if(deaths < highscores[i]){
+		highscores[i+4] = highscores[i+3]
+		highscores[i+3] = highscores[i+2]
+		highscores[i+2] = highscores[i+1]
+		highscores[i+1] = highscores[i]
+		highscores[i] = deaths;
+
+		hNames[i+4] = hNames[i+3]
+		hNames[i+3] = hNames[i+2]
+		hNames[i+2] = hNames[i+1]
+		hNames[i+1] = hNames[i]
+		hNames[i] = name;
+		
+			for(c=highscores.length;c!=5;c--){
+			highscores.pop();
+			hNames.pop();}
+		userPosition = i;
+		i = highscores.length;};
+
+	};
+
+}
+
+function getName(){ //gets name from user
+name = window.prompt("Congratulations! Please enter a 3 character name to see where you place on the highscore list:")
+if(name.length < 3){
+name = "AAA";}
+name = name.slice(0,3)
+name = name.toUpperCase();
+position();};
+
+
+function draw() {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx2.clearRect(0, 0, canvasTop.width, canvasTop.height);
+	drawBackground();
+if (gameActive == false){ // draw title screen
+	playerXP = 115;
+	playerYP = 15;
+	drawEnemy1(100,100)
+	drawShooter1(175,150)
+	drawShooter2(100,150)
+	shoot1(175,100)
+	drawCoin1(100,225)
+	drawBox()
+	drawWall(75,0,wallThiccness,350)
+	drawWall(600,0,wallThiccness,350)
+	drawWall(75,50,525,wallThiccness)
+	drawWall(75,350,527,wallThiccness)
+	drawWall(325.5,50,wallThiccness,300)
+	drawFinish(550,0,50,50)
+	
+	if(playerX < 75 + wallThiccness){
+	wallLeft = true;}
+	else{
+	wallLeft = false;};
+
+	if(playerY + playerHeight > 50){
+	wallDown = true;}
+	else{
+	wallDown = false;}
+		
+	if (playerX + playerWidth > 550){
+	gameActive = true;
+	playerX = 152.5;
+	playerY = 190;
+	finishColor = "#ff0000"
+	boxX = 401;
+	boxY = 301;}
+	
+ctx.font = "20px Comic Sans MS";
+ctx.textAlign = "left";
+ctx.fillStyle = "#000000";
+ctx.fillText("â—„",0,47);
+ctx.fillText("â–º",53,47);
+ctx.fillText("â–²",27,20);
+ctx.fillText("â–¼",27,47);
+ctx.fillText("to move",0,70);
+ctx.font = "30px Comic Sans MS";
+ctx.fillText("Avoid", 220, 135);
+ctx.fillText("Collect", 160, 235);
+ctx.fillText("Move", 175, 300); 
+ctx.fillText("Finish ->", 400, 35);
+ctx.fillText("-Dont touch blue", 330, 80); 
+ctx.fillText("or you  will die", 330, 110);
+ctx.fillText("-Use items to move", 330, 160);
+ctx.fillText("on to each level", 330, 190);
+ctx.fillText("-Less deaths gives", 330, 240);
+ctx.fillText("you a better score", 330, 280);
+ctx.textAlign = "center";
+ctx.fillStyle = "#f20018";
+ctx.fillText("Good luck", 467.5, 330);
+}
+
+	if (level1Complete == false && gameActive == true){
+	level1();}
+	if (level1Complete == true && level2Complete == false){
+	level2();}
+	
+	
+	if (level2Complete == true){
+ctx.font = "60px Comic Sans MS";
+ctx.textAlign = "left";
+ctx.fillStyle = "#FFD700";
+ctx.fillText("1st ",5,52);
+ctx.fillStyle = "#000000";
+ctx.fillText(hNames[0],120,52);
+ctx.fillText(highscores[0],275,52);
+
+ctx.fillStyle = "#878785";
+ctx.fillText("2nd ",5,132);
+ctx.fillStyle = "#000000";
+ctx.fillText(hNames[1],120,132);
+ctx.fillText(highscores[1],275,132);
+
+ctx.fillStyle = "#cd7f32";
+ctx.fillText("3rd ",5,212);
+ctx.fillStyle = "#000000";
+ctx.fillText(hNames[2],120,212);
+ctx.fillText(highscores[2],275,212);
+
+ctx.fillText("4th ",5,302);
+ctx.fillText(hNames[3],120,302);
+ctx.fillText(highscores[3],275,302);
+
+ctx.fillText("5th ",5,382);
+ctx.fillText(hNames[4],120,382);
+ctx.fillText(highscores[4],275,382);
+drawWall(400,0,wallThiccness,400)
+
+ctx.font = "65px Comic Sans MS";
+ctx.fillText("You got",415,150);
+
+if(userPosition==0){
+ctx.fillStyle = "#FFD700";
+ctx.fillText("1st",485,250);}
+else if(userPosition==1){
+ctx.fillStyle = "#878785";
+ctx.fillText("2nd",485,250);}
+else if(userPosition==2){
+ctx.fillStyle = "#cd7f32";
+ctx.fillText("3rd",485,250);}
+else if(userPosition==3){
+ctx.fillStyle = "#000000";
+ctx.fillText("4th",485,250);}
+else if(userPosition==4){
+ctx.fillStyle = "#000000";
+ctx.fillText("5th",485,250);}
+else{
+ctx.font = "50px Comic Sans MS";
+ctx.fillStyle = "#000000";
+ctx.fillText("too many",425,225);
+ctx.fillText("deaths",450,275);}
+}
+	
+		if(level2Complete != true){
+		drawPlayer();}
+		
+	if(rightPressed && playerX < canvas.width-playerWidth && wallRight == false) {
+	    playerX += 1;
+		if(boxRight == true){
+		boxX +=1;}
+	}
+	else if(leftPressed && playerX > 0 && wallLeft == false) {
+	    playerX -= 1;
+		if(boxLeft == true){
+		boxX -=1;}
+	};
+	if(upPressed && playerY > 0 && wallUp == false) {
+	    playerY -= 1;
+		if(boxUp == true){
+		boxY -=1;}
+	}
+	else if(downPressed && playerY < canvas.height-playerHeight && wallDown == false) {
+	    playerY += 1;
+		if(boxDown == true){
+		boxY +=1;}
+	}
+    
+ctx2.font = "50px Comic Sans MS";
+ctx2.textAlign = "left";
+ctx2.fillStyle = "#f20018";
+ctx2.fillText("Red", 0, 45); 
+ctx2.fillStyle = "white";
+ctx2.fillText("vs", 100, 45); 
+ctx2.fillStyle = "#0c1caf";
+ctx2.fillText("Blue", 160, 45); 
+ctx2.fillStyle = "white";
+ctx2.fillText("Deaths: " + deaths, 360, 45); 
+
+};
+
+setInterval(draw, 12);
+</script>
+<style>
+
+#myCanvas{
+border:1px solid black;
+background-color: #b3c4e0;
+margin: 0 auto;
+display: block;}
+
+#canvasTop{
+border:1px solid black;
+background-color: #5e6ae0;
+margin:0 auto;
+display: block;}
+</style>
+</html>
