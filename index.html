@@ -8,29 +8,93 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap" rel="stylesheet">
   </head>
   <body>
-<p>Welcome to my website, check out the stuff I've made:</p>
+  <div class="welcome-header">
+    <p>Welcome to my website, </br>check out the stuff I've made:</p>
+  </div>
 
 
-<a href="/redvsblue.html">
-  <button>Red vs Blue</button>
-</a>
 
-<a href="/simpleTowerDefense.html">
-  <button>Simple Tower Defense</button>
-</a>
 
-<a href="/colorSorter.html">
-  <button>Color Sorter</button>
-</a>
-    
+<div class="hs">
+  <div class="hs-buttons">
+    <a href="highschool-projects/redvsblue.html">
+      <button class="join-button">Red vs Blue</button>
+    </a>
+  </div>
+
+  <div class="hs-buttons">
+    <a href="/highschool-projects/simpleTowerDefense.html">
+      <button class="join-button">Simple Tower Defense</button>
+    </a>
+  </div>
+
+  <div class="hs-buttons">
+    <a href="highschool-projects/colorSorter.html">
+      <button class="join-button">Color Sorter</button>
+    </a>
+  </div>
+</div>
   </body>
 
   <style>
+      a{
+        text-decoration: none;
+      }
+
+      .hs{
+        display: block;
+        text-align: center;
+      }
+
+      .hs-buttons{
+        display: inline-block;
+        margin-right: 25px;
+      }
+
+      .welcome-header{
+        display: block;
+        text-align: center;
+        margin-top: 0px;
+        margin-left: 0px;
+      }
+
       p{
         font-family: Roboto, Arial;
         margin-top:0;
         margin-bottom:0;
       }
+      .join-button{
+      background-color: white;
+      border-color: rgb(0, 102, 255);
+      border-style: solid;
+      border-width: 1px;
+      color: rgb(0, 102, 255);
+      height: 50px;
+      width:auto;
+      border-radius: 2px;
+      cursor: pointer;
+      display: inline-block ;
+
+      transition: background-color 0.15s, 
+       color 0.15s;
+      }
+
+      .join-button:hover{
+      background-color: rgb(0, 102, 255);
+      color: white;
+      }
+
+      .join-button:active{
+      opacity: 0.7;
+      }
+
+      p{
+        font-family: Roboto;
+        margin-top:0px;
+        margin-bottom:0px;
+      }
+
+      
 
   </style>
 
