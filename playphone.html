@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playphone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            gap: 20px;
+        }
+        
+        .payphone {
+            background-color: #303030;
+            border-radius: 20px;
+            padding: 25px;
+            width: 280px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .display {
+            background-color: #98fb98;
+            border: 3px solid #202020;
+            border-radius: 8px;
+            color: #003300;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            height: 50px;
+            margin-bottom: 20px;
+            padding: 10px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            letter-spacing: 2px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .dialogue-container {
+            background-color: #ffffff;
+            border: 2px solid #303030;
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 280px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 12px;
+            height: 24px;
+            background-color: #003300;
+            margin-left: 5px;
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .btn {
+            background-color: #505050;
+            border: 2px solid #404040;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 22px;
+            height: 60px;
+            position: relative;
+            transition: all 0.1s;
+        }
+        
+        .btn:active, .btn.active {
+            background-color: #404040;
+            transform: translateY(2px);
+        }
+        
+        .letters {
+            color: #cccccc;
+            font-size: 10px;
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            right: 0;
+            text-align: center;
+        }
+        
+        .function-btns {
+            display: grid;
+            grid-template-columns: 1fr;
+            margin-top: 15px;
+        }
+        
+        .reset-btn {
+            background-color: #aa0000;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 10px;
+            transition: all 0.1s;
+        }
+        
+        .reset-btn:active {
+            background-color: #880000;
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+    <div class="payphone">
+        <div class="display" id="display"> 
+            <div class="cursor" id="cursor"></div>
+        </div>
+        
+        <div class="keypad">
+            <button class="btn" data-value="1">1<div class="letters"></div></button>
+            <button class="btn" data-value="2">2<div class="letters">ABC</div></button>
+            <button class="btn" data-value="3">3<div class="letters">DEF</div></button>
+            
+            <button class="btn" data-value="4">4<div class="letters">GHI</div></button>
+            <button class="btn" data-value="5">5<div class="letters">JKL</div></button>
+            <button class="btn" data-value="6">6<div class="letters">MNO</div></button>
+            
+            <button class="btn" data-value="7">7<div class="letters">PQRS</div></button>
+            <button class="btn" data-value="8">8<div class="letters">TUV</div></button>
+            <button class="btn" data-value="9">9<div class="letters">WXYZ</div></button>
+            
+            <button class="btn" data-value="*">*</button>
+            <button class="btn" data-value="0">0</button>
+            <button class="btn" data-value="#">#</button>
+        </div>
+        
+        <div class="function-btns">
+            <button class="reset-btn" id="resetBtn">RESET</button>
+        </div>
+    </div>
+    
+    <script>
+        
+    document.addEventListener('DOMContentLoaded', function() {
+    const display = document.getElementById('display');
+    const cursor = document.getElementById('cursor');
+    const resetBtn = document.getElementById('resetBtn');
+    const buttons = document.querySelectorAll('.btn');
+    
+    let currentInput = '';
+    const maxInputLength = 64;
+    const maxDisplayLength = 12;
+    
+    // audio context
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // initialize active tones object
+    const activeTones = {};
+    
+    // keep everything above the payphone
+    const dialogueContainer = document.createElement('div');
+    dialogueContainer.style.textAlign = 'center';
+    dialogueContainer.style.fontSize = '18px';
+    
+    // init audio player for mp3 files
+    const audioPlayer = document.createElement('audio');
+    audioPlayer.controls = true;
+    audioPlayer.style.display = 'flex';
+    audioPlayer.style.margin = '10px auto';
+    audioPlayer.style.width = '250px';
+    
+    const payphoneElement = document.querySelector('.payphone');
+    payphoneElement.parentNode.insertBefore(dialogueContainer, payphoneElement);
+    dialogueContainer.appendChild(audioPlayer);
+    
+    // initialize
+    let currentDialogueEvent = 0;
+    
+    const dialogueEvents = [
+        {
+            // Event 0: Initial state
+            text: "Press # to start",
+            trigger: "#",
+            audioSrc: null
+        },
+        {
+            // Event 1: first dialogue
+            text: "Listen to the audio. Follow instructions.",
+            trigger: "3",
+            audioSrc: "audio1.mp3"
+        },
+        {
+            // Event 2: 32
+            text: "32",
+            trigger: "32",
+            audioSrc: null
+        },
+        {
+            // Event 3: 321
+            text: "321",
+            trigger: "321",
+            audioSrc: null
+        },
+        {
+            // Event 4: 32123
+            text: "32123",
+            trigger: "32123",
+            audioSrc: null
+        },
+        {
+            // Event 5: good
+            text: "Listen to the audio, press # to continue",
+            trigger: "#",
+            audioSrc: "audio2.mp3"
+        },
+        {
+            // Event 6: 3212333
+            text: "3212333",
+            trigger: "3212333",
+            audioSrc: null
+        },
+        {
+            // Event 7: 222399
+            text: "222399",
+            trigger: "222399",
+            audioSrc: null
+        },
+        {
+            // Event 8: 3212333322321
+            text: "3212333322 _ _ _",
+            trigger: "3212333322321",
+            audioSrc: null
+        },
+        {
+            // Event 9: intro to composition
+            text: "Listen to the audio, press # to continue.",
+            trigger: "#",
+            audioSrc: "audio3.mp3"
+        },
+        {
+            // Event 10: the composition
+            text: "Come back home - A telephone étude",
+            trigger: null,
+            audioSrc: "audio4.mp3"
+
+         /*
+         How to play it:
+            75[3]
+            86[4]
+            [9][5][1]
+            45454646
+            45454242
+            45454747
+            [3][5][4]
+            [147]
+            [258]
+            [369]
+            [5][3][4]
+            [369]
+            [258]
+            [147]
+            [5][3][4]
+            456456456456
+            198237912873192837912837
+            654654654654
+            382910832910832910382910
+            456456456456
+            198237912873192837912837
+            654654654654
+            382910832910832910382910
+            [0]..sustained
+            [5]..x..[5]..x..[5].[5].[5].x..[5]..
+            end.            
+        */
+        }
+    ];
+    
+    // init dialogue event 0
+    updateDialogueEvent();
+    
+    //dialogue display update function
+    function updateDialogueEvent() {
+        const event = dialogueEvents[currentDialogueEvent]; // new dialogue event
+        dialogueContainer.innerHTML = ''; //clear prev event
+        
+        const textElement = document.createElement('p'); //create paragraph
+        textElement.textContent = event.text; // update text
+        dialogueContainer.appendChild(textElement); // display text
+        
+        // if the event has an audio source, display it
+        if (event.audioSrc) {
+            audioPlayer.src = event.audioSrc;
+            audioPlayer.style.display = 'block';
+            dialogueContainer.appendChild(audioPlayer);
+        } else {
+            audioPlayer.style.display = 'none';
+        }
+    }
+    
+    // is the has the next event trigger been activated
+    function checkDialogueTrigger() {
+        const event = dialogueEvents[currentDialogueEvent];
+        
+        //if the input is the even trigger
+        if (currentInput === event.trigger) {
+            currentDialogueEvent++;
+            if (currentDialogueEvent >= dialogueEvents.length) { //if the event is the last one, dont do anything
+                currentDialogueEvent = dialogueEvents.length - 1; 
+            }
+            
+            // update dialogue display
+            updateDialogueEvent();
+            
+            // clear input
+            currentInput = '';
+            updateDisplay();
+            return true;
+        }
+        return false; // if input isnt the trigger, return false
+    }
+    
+    //check if the sequence is correct
+    function checkSequences() {
+        if (checkDialogueTrigger()) {
+            return;
+        }
+    }
+    
+    // onclick button function, handle inputs
+    function handleButtonClick(value) {
+        if (currentInput.length < maxInputLength) {
+            currentInput += value;
+        }
+        
+        updateDisplay(); //display the first
+        
+        checkSequences(); //check if new sequence is the trigger
+    }
+    
+    // phone display update function
+    function updateDisplay() {
+        // clear the display
+        while (display.firstChild) {
+            display.removeChild(display.firstChild);
+        }
+        
+        // add the current input, showing the most recent digits if too long
+        if (currentInput) {
+            let displayText;
+            if (currentInput.length <= maxDisplayLength) {
+                displayText = currentInput;
+            } else {
+                // Show only the most recent digits when input is longer than display
+                displayText = currentInput.substring(currentInput.length - maxDisplayLength);
+            }
+            
+            const textNode = document.createTextNode(displayText);
+            display.appendChild(textNode);
+        }
+        
+        display.appendChild(cursor); // cursor
+    }
+    
+    // play frequency on button press
+    function playTone(value) {
+        // if there's already a tone playing for this button, return
+        if (activeTones[value]) return;
+        
+        // keep audio context running if turned off for some reason
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        // DTMF pairs
+        const freqMap = {
+            '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+            '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+            '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+            '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
+        };
+        
+        const [freq1, freq2] = freqMap[value];
+        
+        // create oscillators
+        const osc1 = audioContext.createOscillator();
+        const osc2 = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        //assign frequency values to oscilators
+        osc1.frequency.value = freq1;
+        osc2.frequency.value = freq2;
+        gainNode.gain.value = 0.1; // keep this low
+        
+        //connect gain node
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        osc1.start();
+        osc2.start();
+        
+        // store the oscillators and gain node to stop tone later
+        activeTones[value] = {
+            osc1: osc1,
+            osc2: osc2,
+            gainNode: gainNode
+        };
+    }
+    
+    // stop the tone
+    function stopTone(value) {
+        if (activeTones[value]) {
+            const { osc1, osc2 } = activeTones[value];
+            
+            // add a small fade out to avoid clicks
+            const now = audioContext.currentTime;
+            activeTones[value].gainNode.gain.setValueAtTime(activeTones[value].gainNode.gain.value, now);
+            activeTones[value].gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15); // i like to add extra fade to prevent short clicks
+            
+            // stop oscillators after the fade (delay so the fade can ring out)
+            setTimeout(() => {
+                osc1.stop();
+                osc2.stop();
+                delete activeTones[value];
+            }, 60);
+        }
+    }
+    
+    // reset input
+    function resetInput() {
+        currentInput = '';
+        updateDisplay();
+    }
+    
+    // mousedown/mouseup support
+    buttons.forEach(button => {
+        const value = button.getAttribute('data-value');
+        
+        // Mouse events
+        button.addEventListener('mousedown', function() {
+            this.classList.add('active');
+            handleButtonClick(value);
+            playTone(value);
+        });
+        
+        button.addEventListener('mouseup', function() {
+            this.classList.remove('active');
+            stopTone(value);
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                stopTone(value);
+            }
+        });
+    });
+    
+    // reset button listener
+    resetBtn.addEventListener('click', resetInput);
+    
+    // keyboard handling
+    const keyDownMap = {};
+    
+    document.addEventListener('keydown', function(event) {
+        const key = event.key;
+        
+        if (keyDownMap[key]) return; //keydown only occurs once at a time
+        keyDownMap[key] = true;
+        
+        if (/^[0-9*#]$/.test(key)) { //regex check digits 0-9 and # and *
+            const button = document.querySelector(`.btn[data-value="${key}"]`); //find the element corresponding to the pressed key
+            if (button) { //regular button press 
+                button.classList.add('active');
+                handleButtonClick(key);
+                playTone(key);
+            }
+        } else if (key === 'Escape' || key === 'Backspace') { //reset on esc or backspace
+            resetInput();
+        }
+    });
+    
+    document.addEventListener('keyup', function(event) { //stop when letting go
+        const key = event.key;
+        keyDownMap[key] = false;
+        
+        //find button, remove it from active tones, and stop the tone
+        if (/^[0-9*#]$/.test(key)) {
+            const button = document.querySelector(`.btn[data-value="${key}"]`);
+            if (button) {
+                button.classList.remove('active');
+                stopTone(key);
+            }
+        }
+    });
+});
+    </script>
+</body>
+</html>
