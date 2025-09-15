@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   SiReact,
   SiNextdotjs,
@@ -59,16 +60,16 @@ export default function Home() {
 
   const technologies = [
     { name: "React", icon: SiReact, color: "text-blue-500" },
-    { name: "Next.js", icon: SiNextdotjs, color: "text-black" },
+    { name: "Next.js", icon: SiNextdotjs, color: "text-black dark:text-white" },
     { name: "JavaScript", icon: SiJavascript, color: "text-yellow-500" },
     { name: "C++", icon: SiCplusplus, color: "text-blue-600" },
     { name: "MongoDB", icon: SiMongodb, color: "text-green-500" },
-    { name: "Express.js", icon: SiExpress, color: "text-gray-600" },
+    { name: "Express.js", icon: SiExpress, color: "text-gray-600 dark:text-gray-300" },
     { name: "Node.js", icon: SiNodedotjs, color: "text-green-600" },
     { name: "OpenGL", icon: SiOpengl, color: "text-blue-400" },
-    { name: "GitHub", icon: SiGithub, color: "text-gray-800" },
+    { name: "GitHub", icon: SiGithub, color: "text-gray-800 dark:text-gray-200" },
     { name: "Figma", icon: SiFigma, color: "text-purple-500" },
-    { name: "Vercel", icon: SiVercel, color: "text-black" },
+    { name: "Vercel", icon: SiVercel, color: "text-black dark:text-white" },
     { name: "Photoshop", icon: SiAdobephotoshop, color: "text-blue-700" },
     { name: "Premiere Pro", icon: SiAdobepremierepro, color: "text-purple-700" },
     { name: "Shopify", icon: SiShopify, color: "text-green-600" },
@@ -139,6 +140,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Theme Toggle - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Hero Section */}
       <section className="relative py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -210,6 +216,7 @@ export default function Home() {
               <div className="w-full h-[600px] flex items-center justify-center">
                 <UnicornStudioEmbed
                   projectId="OzOEPvbvwDYvt8F4Ao95"
+                  darkProjectId="J9H9FLiwiigfRplzx4qL"
                   className="w-full h-full"
                 />
               </div>
