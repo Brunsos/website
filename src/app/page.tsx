@@ -418,7 +418,7 @@ export default function Home() {
           </div>
           <div className="mt-12 pt-8 border-t border-border">
             <p className="text-sm text-muted-foreground">
-              © 2025 Zorian Hudym. Built with Next.js, TypeScript, and my local library's WiFi.
+              © 2025 Zorian Hudym. Built with Next.js, TypeScript, and my local library&apos;s WiFi.
             </p>
           </div>
         </div>
